@@ -12,7 +12,7 @@ from utils.comprehend import is_prompt_positive
 from utils.functions import get_prompt
 from utils.s3 import store_image_in_s3 
 from utils.sqs import get_messages_count, set_sqs_delay
-from utils.sagemaker import create_inference_endpoint, get_inference_endpoint_status
+from utils.sagemaker import create_inference_endpoint, get_inference_endpoint_status, generate_image
 
 
 s3_client = boto3.client("s3")
@@ -40,47 +40,6 @@ SERVICE_TABLE_NAME = environ.get('SERVICE_TABLE_NAME')
 ENDPOINT_CONFIG_NAME = environ.get('ENDPOINT_CONFIG_NAME')
 SQS_NEW_DELAY_TIME = int(environ.get('SQS_NEW_DELAY_TIME'))
 SQS_DEFAULT_DELAY_TIME = int(environ.get('SQS_DEFAULT_DELAY_TIME'))
-
-
-
-def generate_image(request_id, prompt, endpoint_name):
-    print("Generate Image")
-    payload = {
-        "cfg_scale": CFG_SCALE,
-        "height": HEIGHT,
-        "width": WIDTH,
-        "steps": STEPS,
-        "seed": SEED,
-        "sampler": SAMPLER,
-        "text_prompts": [
-            {
-                "text": prompt,
-                "weight": WEIGHT
-            }
-        ],
-        "samples": SAMPLES  # Set samples to 1 for a single image
-    }
-    
-    print("Prompt ", prompt)
-
-    try:
-        print("Invoking endpoint")
-        status="inprogress"
-        update_request_record(dynamodb_client, REQUEST_TABLE_NAME,request_id,status)
-        response = sagemaker_runtime_client.invoke_endpoint(
-            EndpointName=endpoint_name,
-            ContentType=CONTENT_TYPE,
-            Body=json.dumps(payload)
-        )
-        print(" RESPONSE OF generate image is ", response)
-        return 200, response
-    except Exception as excp:
-        status="failed"
-        update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id, status)
-        print("Exception ", excp)
-        return 500, json.dumps({"error": str(excp)})
-
-
 
 def lambda_handler(event, context):
     print("EVENT ", event)
@@ -112,7 +71,7 @@ def lambda_handler(event, context):
                 raise Exception('Endpoint not in service')
             
             set_sqs_delay(sqs_client, SQS_DEFAULT_DELAY_TIME,QUEUE_URL)
-            statusCode, response = generate_image(request_id, prompt, endpoint_name)
+            statusCode, response = generate_image(dynamodb_client, sagemaker_runtime_client, CONTENT_TYPE, REQUEST_TABLE_NAME, CFG_SCALE, HEIGHT, WIDTH, STEPS, SEED, SAMPLER, WEIGHT, SAMPLES, request_id, prompt, endpoint_name)
             
             print("Response of generate image ", response)
             print("status code of gen image : ",  statusCode )
@@ -140,9 +99,7 @@ def lambda_handler(event, context):
                     update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id,status, s3_key)
                     # delete_from_sqs(QUEUE_URL, ReceiptHandle)
                     messages_in_queue = get_messages_count(sqs_client, QUEUE_URL)
-                    print(messages_in_queue)
                     if messages_in_queue <= 1:
-                        print("reached on this body")
                         status = 'empty'
                         update_service_status(dynamodb_client, SERVICE_TABLE_NAME, 'queue', status)
                     # update_request_record(request_id,status, s3_key)
