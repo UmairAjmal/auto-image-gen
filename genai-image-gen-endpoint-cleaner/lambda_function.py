@@ -23,7 +23,7 @@ def is_diff_10_min(last_updated):
 
     # Check if the difference is 10 minutes (600 seconds)
     return True if time_diff >= 600 else False
-
+    
 
 def lambda_handler(event, context):
     
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
             response = sagemaker_client.delete_endpoint(
                 EndpointName=endpoint_details['service_name']['S']
             )
-            update_service_details('inference_endpoint')
+            update_service_details(dynamodb_client, SERVICE_TABLE_NAME, 'inference_endpoint')
             print("successfully deleted endpoint after 10 minutes")
         else:
             print("No endpoint exist for deletion")
