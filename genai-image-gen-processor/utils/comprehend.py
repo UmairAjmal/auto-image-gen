@@ -1,8 +1,8 @@
-from constants import positive_prompt, neutral_prompt
+from constants import prompt_sentiment_values
 
-def is_prompt_positive(comprehend_client, prompt, languahe_code):
+def is_prompt_positive(comprehend_client, prompt, language_code):
     print("Is prompt positive")
-    response = comprehend_client.detect_sentiment(Text=prompt, LanguageCode=languahe_code)
+    response = comprehend_client.detect_sentiment(Text=prompt, LanguageCode=language_code)
     
     sentiment = response['Sentiment']
     score = response['SentimentScore']
@@ -11,7 +11,7 @@ def is_prompt_positive(comprehend_client, prompt, languahe_code):
     print('Sentiment:', sentiment)
     print('Score:', score)
 
-    if sentiment.upper() in (positive_prompt, neutral_prompt):
+    if sentiment.upper() in prompt_sentiment_values:
         print("Prompt is Positive")
         return True
     else:

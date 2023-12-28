@@ -44,7 +44,7 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "body": json.dumps({
-                'message_id': message_id,
+                'request_id': message_id,
                 'queue_number':messages_in_queue,
                 'expected_time_remaining': time_remaining
             })

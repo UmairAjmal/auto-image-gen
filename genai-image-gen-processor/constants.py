@@ -5,5 +5,4 @@ empty_queue_status='empty'
 completed_status='completed'
 failed_status='failed'
 inprogress_status='inprogress'
-positive_prompt='POSITIVE'
-neutral_prompt='NEUTRAL'
+prompt_sentiment_values=('POSITIVE', 'NEUTRAL')
