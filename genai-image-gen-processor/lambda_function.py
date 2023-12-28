@@ -8,11 +8,11 @@ from io import BytesIO
 from datetime import datetime
 
 from constants import *
-from utils.dynamo import update_service_status, update_request_record, get_inference_endpoint
-from utils.comprehend import is_prompt_positive
 from utils.functions import get_prompt
 from utils.s3 import store_image_in_s3 
+from utils.comprehend import is_prompt_positive
 from utils.sqs import get_messages_count, set_sqs_delay
+from utils.dynamo import update_service_status, update_request_record, get_inference_endpoint
 from utils.sagemaker import create_inference_endpoint, get_inference_endpoint_status, generate_image
 
 
