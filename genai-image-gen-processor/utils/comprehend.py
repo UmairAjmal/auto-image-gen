@@ -1,6 +1,6 @@
-def is_prompt_positive(comprehend_client, prompt, LANGUAGE_CODE):
+def is_prompt_positive(comprehend_client, prompt, languahe_code):
     print("Is prompt positive")
-    response = comprehend_client.detect_sentiment(Text=prompt, LanguageCode=LANGUAGE_CODE)
+    response = comprehend_client.detect_sentiment(Text=prompt, LanguageCode=languahe_code)
     
     sentiment = response['Sentiment']
     score = response['SentimentScore']

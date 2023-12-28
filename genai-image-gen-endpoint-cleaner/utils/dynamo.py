@@ -1,11 +1,11 @@
-def get_service_details(dynamodb_client, SERVICE_TABLE_NAME, service_type):
+def get_service_details(dynamodb_client, service_table_name, service_type):
     primary_key = {
         "service_type": {"S": service_type}
     }
     
     # Get the item
     response = dynamodb_client.get_item(
-        TableName=SERVICE_TABLE_NAME,
+        TableName=service_table_name,
         Key=primary_key
     )
     
@@ -15,7 +15,7 @@ def get_service_details(dynamodb_client, SERVICE_TABLE_NAME, service_type):
     else:
         return None
 
-def update_service_details(dynamodb_client, SERVICE_TABLE_NAME, service_type):
+def update_service_details(dynamodb_client, service_table_name, service_type):
     primary_key = {
         'service_type': {'S': service_type},
     }
@@ -25,7 +25,7 @@ def update_service_details(dynamodb_client, SERVICE_TABLE_NAME, service_type):
     
     # Update the item
     response = dynamodb_client.update_item(
-        TableName=SERVICE_TABLE_NAME,
+        TableName=service_table_name,
         Key=primary_key,
         UpdateExpression=update_expression
     )

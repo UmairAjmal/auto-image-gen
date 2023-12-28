@@ -7,6 +7,7 @@ from os import environ
 from io import BytesIO
 from datetime import datetime
 
+from constants import *
 from utils.dynamo import update_service_status, update_request_record, get_inference_endpoint
 from utils.comprehend import is_prompt_positive
 from utils.functions import get_prompt
@@ -42,12 +43,16 @@ SQS_NEW_DELAY_TIME = int(environ.get('SQS_NEW_DELAY_TIME'))
 SQS_DEFAULT_DELAY_TIME = int(environ.get('SQS_DEFAULT_DELAY_TIME'))
 
 def lambda_handler(event, context):
+    """
+        Poll message from queue, Extract Prompt, check if prompt is positive, check if enpoint is in service,
+        if not then create the endpoint and  generate image, store image in s3 and store the status in dynamodb,
+        also check if the queue is empty and update the queue status
+    """
     print("EVENT ", event)
     record = event.get('Records')[0]
     try:
         # Get Prompt
         request_id, prompt = get_prompt(event)
-
         print("Prompt :: ", prompt)
         print("Request ID  :: ",  request_id )
 
@@ -60,14 +65,14 @@ def lambda_handler(event, context):
             # Create new endpoint if not present
                 current_date = datetime.now().strftime("%Y-%m-%d-%H-%M")
                 endpoint_name = f'genai-image-gen-{current_date}'
-                update_service_status(dynamodb_client, SERVICE_TABLE_NAME, 'inference_endpoint', None, endpoint_name)
+                update_service_status(dynamodb_client, SERVICE_TABLE_NAME, inference_endpoint_service_name, None, endpoint_name)
                 create_inference_endpoint(sagemaker_client, ENDPOINT_CONFIG_NAME, endpoint_name)
                 set_sqs_delay(sqs_client, SQS_NEW_DELAY_TIME, QUEUE_URL)
                 raise Exception('Endpoint not present, creation in progress')
             
             # Check for endpoint status, if not inservice raise error
             status = get_inference_endpoint_status(sagemaker_client,endpoint_name)
-            if(status != 'InService'):
+            if(status != endpoint_inservice_status):
                 raise Exception('Endpoint not in service')
             
             set_sqs_delay(sqs_client, SQS_DEFAULT_DELAY_TIME,QUEUE_URL)
@@ -95,13 +100,13 @@ def lambda_handler(event, context):
                         "body" : response
                     }
                 else: # Remove from SQS
-                    status="completed"
+                    status=completed_status
                     update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id,status, s3_key)
                     # delete_from_sqs(QUEUE_URL, ReceiptHandle)
                     messages_in_queue = get_messages_count(sqs_client, QUEUE_URL)
                     if messages_in_queue <= 1:
-                        status = 'empty'
-                        update_service_status(dynamodb_client, SERVICE_TABLE_NAME, 'queue', status)
+                        status = empty_queue_status
+                        update_service_status(dynamodb_client, SERVICE_TABLE_NAME, queue_service_name, status)
                     # update_request_record(request_id,status, s3_key)
                     return {
                         'statusCode': 200,
