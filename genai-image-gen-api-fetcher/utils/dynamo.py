@@ -1,11 +1,11 @@
-def check_request_status(client,REQUEST_TABLE_NAME,request_id):
+def check_request_status(client,request_table_name,request_id):
     # Set the primary key values
     primary_key = {
         "uuid": {"S": request_id}
     }
     # Get the item
     response = client.get_item(
-        TableName=REQUEST_TABLE_NAME,
+        TableName=request_table_name,
         Key=primary_key
     )
     print({'Request ID': request_id, 'Request response': response})

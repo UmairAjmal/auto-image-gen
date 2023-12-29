@@ -7,9 +7,9 @@ def get_messages_count(sqs_client, queue_url):
     )
     return int(response['Attributes'].get('ApproximateNumberOfMessages',0)) + int(response['Attributes'].get('ApproximateNumberOfMessagesNotVisible', 0))
 
-def set_sqs_delay(sqs_client, delay_time, QUEUE_URL):
+def set_sqs_delay(sqs_client, delay_time, queue_url):
     response = sqs_client.set_queue_attributes(
-        QueueUrl=QUEUE_URL,
+        QueueUrl=queue_url,
         Attributes={
             'DelaySeconds': str(delay_time)
         }

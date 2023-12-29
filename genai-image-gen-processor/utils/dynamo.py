@@ -1,7 +1,9 @@
 import boto3
 from datetime import datetime
 
-def update_service_status(dynamodb_client,SERVICE_TABLE_NAME,service_type, status = None, service_name = None):
+from constants import *
+
+def update_service_status(dynamodb_client,service_table_name,service_type, status = None, service_name = None):
     primary_key = {
         'service_type': {'S': service_type},
     }
@@ -25,13 +27,13 @@ def update_service_status(dynamodb_client,SERVICE_TABLE_NAME,service_type, statu
     
     # Update the item
     response = dynamodb_client.update_item(
-        TableName=SERVICE_TABLE_NAME,
+        TableName=service_table_name,
         Key=primary_key,
         UpdateExpression=update_expression,
         ExpressionAttributeValues=expression_attribute_values
     )
 
-def update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id, status, url = None):
+def update_request_record(dynamodb_client, request_table_name, request_id, status, url = None):
     primary_key = {
         'uuid': {'S': request_id},
     }
@@ -48,7 +50,7 @@ def update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id, statu
     
     # Update the item
     response = dynamodb_client.update_item(
-        TableName=REQUEST_TABLE_NAME,
+        TableName=request_table_name,
         Key=primary_key,
         UpdateExpression=update_expression,
         ExpressionAttributeValues=expression_attribute_values
@@ -57,12 +59,12 @@ def update_request_record(dynamodb_client, REQUEST_TABLE_NAME, request_id, statu
     # Print the response
     print(response)  
 
-def get_inference_endpoint(SERVICE_TABLE_NAME):
+def get_inference_endpoint(service_table_name):
     dynamodb = boto3.resource('dynamodb')
-    dynamo_table_client = dynamodb.Table(SERVICE_TABLE_NAME)
+    dynamo_table_client = dynamodb.Table(service_table_name)
     response = dynamo_table_client.get_item(
         Key={
-            'service_type': 'inference_endpoint',
+            'service_type': inference_endpoint_service_name,
         }
     )
 

@@ -1,3 +1,3 @@
-queuedstatus = 'queued'
-completedstatus = 'completed'
-inprogressstatus = 'inprogress'
+queued_status = 'queued'
+completed_status = 'completed'
+inprogress_status = 'inprogress'
